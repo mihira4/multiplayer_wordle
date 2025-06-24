@@ -210,3 +210,53 @@
     }
   }
   
+  /* LOGO IMAGE */
+.logo-img {
+  width: 400px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* LOGO CONTAINER (if any) */
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px; /* reduce gap below logo */
+  padding: 0;
+}
+
+/* SUBTITLE BELOW LOGO */
+.login-subtitle {
+  font-size: 16px;
+  color: #555;
+  margin: 6px 0 0; /* reduce space above & below */
+  text-align: center;
+}
+
+.register-card {
+  max-width: 400px;      /* or whatever your form width is */
+  margin: 0 auto;
+  padding: 24px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  background-color: white;
+}
+
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #f9fafb;
+  padding: 1rem;
+  box-sizing: border-box;
+}
