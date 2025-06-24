@@ -56,10 +56,10 @@ export default function LoginPage() {
           <h1 className="wordle-title">
             <span className="letter-green">W</span>
             <span className="letter-yellow">O</span>
-            <span className="letter-green">R</span>
-            <span className="letter-gray">D</span>
+            <span className="letter-gray">R</span>
+            <span className="letter-green">D</span>
             <span className="letter-yellow">L</span>
-            <span className="letter-green">E</span>
+            <span className="letter-gray">E</span>
           </h1>
           <p className="login-subtitle">Sign in to play with friends</p>
         </div>

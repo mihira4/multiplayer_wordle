@@ -67,10 +67,10 @@ export default function RegisterPage() {
           <h1 className="register-title">
             <span className="letter-w">W</span>
             <span className="letter-o">O</span>
-            <span className="letter-r">R</span>
-            <span className="letter-d">D</span>
-            <span className="letter-l">L</span>
-            <span className="letter-e">E</span>
+            <span className="letter-d">R</span>
+            <span className="letter-w">D</span>
+            <span className="letter-o">L</span>
+            <span className="letter-d">E</span>
           </h1>
           <p className="register-description">Create your account to start playing</p>
         </div>

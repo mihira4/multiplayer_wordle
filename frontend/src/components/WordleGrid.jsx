@@ -26,24 +26,20 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   }, [wordLength])
 
   // Handle keyboard input
-  useEffect(() => {
-    if (!gameStarted) return
+  const handleKeyPress = (event) => {
+  if (!gameStarted) return;
+  const key = event.key.toLowerCase();
 
-    const handleKeyPress = (event) => {
-      const key = event.key.toLowerCase()
+  if (key === "enter") {
+    handleSubmitRow();
+  } else if (key === "backspace") {
+    handleBackspace();
+  } else if (key.match(/[a-z]/) && key.length === 1) {
+    handleLetterInput(key.toUpperCase());
+  }
+};
 
-      if (key === "enter") {
-        handleSubmitRow()
-      } else if (key === "backspace") {
-        handleBackspace()
-      } else if (key.match(/[a-z]/) && key.length === 1) {
-        handleLetterInput(key.toUpperCase())
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyPress)
-    return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [currentRow, currentCol, gameStarted])
+    
 
   const handleLetterInput = (letter) => {
     if (currentCol < wordLength && currentRow < 6) {
@@ -102,27 +98,34 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   }
 
   return (
-    <div className="wordle-grid-container">
-      <div className="wordle-grid" style={{ "--word-length": wordLength }}>
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid-row">
-            {row.map((cell, colIndex) => (
-              <div key={`${rowIndex}-${colIndex}`} className={getCellClass(cell, rowIndex, colIndex)}>
-                {cell.letter}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {gameStarted && (
-        <div className="game-instructions">
-          <p>Type letters and press Enter to submit your guess</p>
-          <p>Use Backspace to delete letters</p>
+  <div
+    className="wordle-grid-container"
+    tabIndex={0}
+    onKeyDown={handleKeyPress}
+  >
+    <div className="wordle-grid" style={{ "--word-length": wordLength }}>
+      {grid.map((row, rowIndex) => (
+        <div key={rowIndex} className="grid-row">
+          {row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={getCellClass(cell, rowIndex, colIndex)}
+            >
+              {cell.letter}
+            </div>
+          ))}
         </div>
-      )}
+      ))}
     </div>
-  )
+
+    {gameStarted && (
+      <div className="game-instructions">
+        <p>Type letters and press Enter to submit your guess</p>
+        <p>Use Backspace to delete letters</p>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default WordleGrid;
