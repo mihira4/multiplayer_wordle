@@ -6,6 +6,8 @@ import Login from './components/Login.jsx'
 import Register from './components/Register.jsx'
 import Home from './components/Home.jsx'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import GamePage from './components/GamePage.jsx'
+import WordleGrid from './components/WordleGrid.jsx'
 
 function App() {
     const router = createBrowserRouter([
@@ -19,7 +21,11 @@ function App() {
       },
       {
         path: "/Home",
-        element: <><Home /></>
+        element: <><GamePage /></>
+      },
+      {
+        path: "/game",
+        element: <><WordleGrid /></>
       }
       
     ])

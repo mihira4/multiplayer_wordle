@@ -121,7 +121,9 @@ export default function LoginPage() {
           <div className="signup-link">
             {/* <span className="signup-text">Don't have an account? </span> */}
             <p className="redirect-text">
-            Don't have an account? <span onClick={() => navigate("/register")}>Sign In</span>
+            Don't have an account?  <span className="signup-anchor" onClick={() => navigate("/register")}>
+      Sign Up
+    </span>
           </p>
           </div>
         </div>

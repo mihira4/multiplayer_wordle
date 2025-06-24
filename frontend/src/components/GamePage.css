@@ -1,32 +1,22 @@
-/* .home-container {
+.game-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background-color: #f8f9fa;
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
 }
 
-.home-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 48px 40px;
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
+.game-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  padding: 0 20px;
+  position: relative;
 }
 
-/* .wordle-title {
-  font-size: 48px;
-  font-weight: bold;
-  margin: 0 0 16px 0;
-  letter-spacing: 2px;
-} */
-
 .wordle-title {
-  font-size: 4.5rem; /* 30px */
+  font-size: 4.5rem; /* larger title like homepage */
   font-weight: 700;
   letter-spacing: -0.025em;
   margin: 0 0 0.5rem 0;
@@ -34,24 +24,58 @@
 }
 
 .letter-green {
-  color: #16a34a; /* Tailwind green-600 */
+  color: #16a34a;
 }
 
 .letter-yellow {
-  color: #eab308; /* Tailwind yellow-500 */
+  color: #eab308;
 }
 
 .letter-gray {
-  color: #4b5563; /* Tailwind gray-600 */
+  color: #4b5563;
+}
+
+.new-game-btn {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background-color: #6aaa64;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 
+.new-game-btn:hover {
+  background-color: #5a9a54;
+}
 
-.subtitle {
-  color: #6b7280;
-  font-size: 16px;
-  margin: 0 0 32px 0;
-  line-height: 1.5;
+.game-settings {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.settings-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.settings-card h2 {
+  margin: 0 0 24px 0;
+  color: #374151;
+  font-size: 24px;
 }
 
 .form-group {
@@ -124,55 +148,26 @@
   transform: translateY(1px);
 }
 
-.divider {
-  position: relative;
-  margin: 24px 0;
-}
-
-.divider::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #e5e7eb;
-}
-
-.divider-text {
-  background-color: white;
-  color: #9ca3af;
-  font-size: 14px;
-  padding: 0 16px;
-  position: relative;
-}
-
-.bottom-text {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 0;
-}
-
-.link {
-  color: #6aaa64;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
 /* Responsive design */
-@media (max-width: 480px) {
-  .home-card {
-    padding: 32px 24px;
-    margin: 16px;
+@media (max-width: 768px) {
+  .game-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
   }
 
   .wordle-title {
     font-size: 36px;
   }
-} 
+}
 
+@media (max-width: 480px) {
+  .settings-card {
+    margin: 0 16px;
+    padding: 24px;
+  }
 
+  .game-page {
+    padding: 16px;
+  }
+}

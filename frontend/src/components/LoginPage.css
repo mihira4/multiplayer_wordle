@@ -9,6 +9,12 @@
     box-sizing: border-box;
   }
   
+  .redirect-text {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #6b7280;
+  text-align: center;
+}
   
   .login-card {
     width: 100%;
