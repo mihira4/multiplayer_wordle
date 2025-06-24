@@ -8,12 +8,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors);
+app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRoutes);
 
-const PORT = process.env.PORT || 6007;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, async () => {
   await connectDb();
   console.log(`🚀 Server running on port ${PORT}`);
