@@ -17,6 +17,7 @@ export const initializeSocket = (server) => {
     
         socket.on("disconnect", () => {
           console.log("❌ A user disconnected:", socket.id);
+         
           io.emit("getUsers", users);
         });
       });

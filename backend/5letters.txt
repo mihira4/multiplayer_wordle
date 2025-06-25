@@ -8,6 +8,7 @@ squad
 beisa
 shrug
 fossa
+vidhi
 fluyt
 camus
 speed
