@@ -8,6 +8,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   const [currentCol, setCurrentCol] = useState(0)
   const [targetWord, setTargetWord] = useState("")
   const [letterStates, setLetterStates] = useState({})
+  const [gameOver, setGameOver] = useState(false);
 
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
@@ -47,7 +48,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
 
   // Handle keyboard input
   const handleKeyPress = (event) => {
-  if (!gameStarted) return;
+  if (!gameStarted||gameOver) return;
   const key = event.key.toLowerCase();
 
   if (key === "enter") {
@@ -62,6 +63,8 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
     
 
   const handleLetterInput = (letter) => {
+    if (gameOver) return;
+
     if (currentCol < wordLength && currentRow < 6) {
       const newGrid = [...grid]
       newGrid[currentRow][currentCol] = {
@@ -74,6 +77,8 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   }
 
   const handleBackspace = () => {
+    if (gameOver) return;
+
     if (currentCol > 0) {
       const newGrid = [...grid]
       newGrid[currentRow][currentCol - 1] = {
@@ -90,6 +95,14 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
      
     {
       const guess = grid[currentRow].map(c => c.letter).join('');
+      if (guess === targetWord) {
+  // Mark all as correct
+  const newGrid = [...grid];
+  newGrid[currentRow].forEach(cell => cell.state = "correct");
+  setGrid(newGrid);
+  setGameOver(true);  // ✅ Game ends here
+  return;
+}
       try {
       const res = await fetch(`${BASE_URL}/word/isValid/${guess}/${wordLength}`);
       const data = await res.json();
@@ -166,57 +179,70 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   }
 
   return (
-    <div
-      className="wordle-grid-container"
-      tabIndex={0}
-      onKeyDown={handleKeyPress}
-    >
-      <div className="wordle-grid" style={{ "--word-length": wordLength }}>
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid-row">
-            {row.map((cell, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={getCellClass(cell, rowIndex, colIndex)}
-              >
-                {cell.letter}
-              </div>
-            ))}
-          </div>
-        ))}
+  <div
+    className="wordle-grid-container"
+    tabIndex={0}
+    onKeyDown={handleKeyPress}
+  >
+    {/* ✅ Game over message shown on top */}
+    {gameOver && (
+      <div className="game-over-message">
+        🎉 You guessed the word correctly!
       </div>
+    )}
 
-      {gameStarted && (
-        <>
-          <div className="game-instructions">
-            <p>Type letters and press Enter to submit your guess</p>
-            <p>Use Backspace to delete letters</p>
-          </div>
-
-          <div className="keyboard">
-            {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => (
-              <div
-                key={letter}
-                className={`key ${
-                  letterStates[letter]
-                    ? `key-${letterStates[letter]}`
-                    : "key-unused"
-                }`}
-              >
-                {letter}
-              </div>
-            ))}
-          </div>
-
-          {process.env.NODE_ENV === "development" && targetWord && (
-            <p style={{ textAlign: "center", marginTop: "1rem" }}>
-              🔍 Target Word: {targetWord}
-            </p>
-          )}
-        </>
-      )}
+    <div className="wordle-grid" style={{ "--word-length": wordLength }}>
+      {grid.map((row, rowIndex) => (
+        <div key={rowIndex} className="grid-row">
+          {row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={getCellClass(cell, rowIndex, colIndex)}
+              style={{
+                animationDelay:
+                  cell.state !== "empty" && rowIndex <= currentRow
+                    ? `${colIndex * 0.2}s`
+                    : "0s",
+              }}
+            >
+              {cell.letter}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
-  )
+
+    {gameStarted && (
+      <>
+        <div className="game-instructions">
+          <p>Type letters and press Enter to submit your guess</p>
+          <p>Use Backspace to delete letters</p>
+        </div>
+
+        <div className="keyboard">
+          {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => (
+            <div
+              key={letter}
+              className={`key ${
+                letterStates[letter]
+                  ? `key-${letterStates[letter]}`
+                  : "key-unused"
+              }`}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
+
+        {process.env.NODE_ENV === "development" && targetWord && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>
+            🔍 Target Word: {targetWord}
+          </p>
+        )}
+      </>
+    )}
+  </div>
+);
 }
 
-export default WordleGrid
+export default WordleGrid;

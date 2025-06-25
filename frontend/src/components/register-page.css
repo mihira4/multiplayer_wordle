@@ -1,20 +1,18 @@
 .register-container {
-    min-height: 100vh;
-    background-color: #f9fafb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column; /* Make layout vertical */
+  justify-content: center; /* center content vertically */
+  align-items: center;    
+}
+
   
   .register-card {
-    width: 100%;
-    max-width: 28rem;
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border: 1px solid #e5e7eb;
-  }
+  margin: auto; /* Vertically and horizontally center the form card */
+  margin-top: 2rem; /* Add spacing from the header */
+}
+
   
   .register-header {
     text-align: center;

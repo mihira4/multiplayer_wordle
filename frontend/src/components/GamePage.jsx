@@ -3,6 +3,7 @@
 import { useState } from "react"
 import WordleGrid from "./WordleGrid"
 import "./GamePage.css"
+import Header from "./Header"
 
 const GamePage = () => {
   const [wordLength, setWordLength] = useState(5)
@@ -21,15 +22,9 @@ const GamePage = () => {
 
   return (
     <div className="game-page">
+      <Header/>
       <div className="game-header">
-        <h1 className="wordle-title">
-  <span className="letter-green">W</span>
-  <span className="letter-yellow">O</span>
-  <span className="letter-gray">R</span>
-  <span className="letter-green">D</span>
-  <span className="letter-yellow">L</span>
-  <span className="letter-gray">E</span>
-</h1>
+       
 
         {gameStarted && (
           <button className="new-game-btn" onClick={handleNewGame}>

@@ -141,6 +141,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./LoginPage.css";
 import { BASE_URL } from "../../helper";
 import { useAuth } from "../store/storetoken.jsx";
+import Header from "./Header.jsx";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ emailid: "", password: "" });
@@ -187,9 +188,9 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       {/* Logo above card */}
-      <div className="logo-wrapper">
-        <img src={logo_wordleverse} alt="Logo" className="logo-img" />
-      </div>
+      
+          <Header /> 
+     
 
       <div className="login-card">
         
