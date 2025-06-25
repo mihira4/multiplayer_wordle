@@ -13,6 +13,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   const [gameOver, setGameOver] = useState(false)
   const [invalidWordMessage, setInvalidWordMessage] = useState("")
   const [shakeRow, setShakeRow] = useState(-1)
+  const hasFetched = useRef(false);
 
   const gridRef = useRef(null)
 
@@ -39,6 +40,10 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
       if (!gameStarted) return
 
       try {
+        if (hasFetched.current)
+            return ;
+        hasFetched.current = true;
+
         const res = await fetch(`${BASE_URL}/word/getWord/${wordLength}`) // 👈 use backticks + inject variable
         const data = await res.json()
         //console.log(res.text());

@@ -8,6 +8,7 @@ import Header from "./Header.jsx";
 import "./register-page.css";
 import { BASE_URL } from "../../helper";
 import { useAuth } from "../store/storetoken";
+import { initializeSocket, updateSocketToken, getSocket } from "../store/socket.jsx";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -49,6 +50,13 @@ export default function RegisterPage() {
 
       if (response.data.success) {
         storeTokeninLS(response.data.token);
+        
+        if (!getSocket()) {
+          initializeSocket(token); // Initialize the socket for the first time
+        } else {
+          updateSocketToken(token); // Update the token if socket already exists
+        } 
+
         navigate("/Home");
       } else {
         alert("Registration failed! Try again");

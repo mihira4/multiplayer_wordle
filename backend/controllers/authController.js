@@ -52,8 +52,10 @@ export const login = async (req, resp) => {
             resp.status(500).json({success: false, message: "User not registered! Try making a new account"});
 
         const compare = await bcrypt.compare(password,currentUser.password);
-        if(!compare)
+        if(!compare) {
+            console.log("password not match!");
             return resp.status(200).json({success: false, message:"Invalid credentials. Please check again!"});
+        }
 
         const token=jwt.sign({emailid:emailid},key);
         resp.json({success: true,token});
