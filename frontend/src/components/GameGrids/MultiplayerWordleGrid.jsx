@@ -5,7 +5,7 @@ import "./MultiplayerWordleGrid.css"
 import { BASE_URL } from "../../../helper"
 import { getSocket } from "../../store/socket"
 
-const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName, multiplayerAction, roomCode}) => {
+const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName, multiplayerAction, roomCode }) => {
   const [grid, setGrid] = useState([])
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
@@ -14,37 +14,43 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
   const [gameOver, setGameOver] = useState(false)
   const [invalidWordMessage, setInvalidWordMessage] = useState("")
   const [shakeRow, setShakeRow] = useState(-1)
-  const hasFetched = useRef(false);
-  const socket = getSocket();
+  const [players, setPlayers] = useState([]) // New state for players list
+  const hasFetched = useRef(false)
+  const socket = getSocket()
 
   const gridRef = useRef(null)
 
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
     const createRoom = () => {
-        socket.emit("createRoom", { playerName, wordLength, roomCode }, (response) => {
-          if (response.success) {
-            setTargetWord(response.word);
-          } else {
-            alert("Failed to create room");
-          }
-        });
-      };
-
-    const joinRoom = () => {
-        socket.emit("joinRoom", {playerName, roomCode }, (response) => {
-            console.log("heres the response ---> ", response);
-            if (response.success) {
-                console.log("here's the response.word ---->", response.word);
-                setTargetWord(response.word);
-                //update playerlist here
-            } else {
-                alert("Failed to join room");
-            }
-        })
+      socket.emit("createRoom", { playerName, wordLength, roomCode }, (response) => {
+        if (response.success) {
+          setTargetWord(response.word)
+        } else {
+          alert("Failed to create room")
+        }
+      })
     }
 
-    
+    const joinRoom = () => {
+      socket.emit("joinRoom", { playerName, roomCode }, (response) => {
+        console.log("heres the response ---> ", response)
+        if (response.success) {
+          console.log("here's the response.word ---->", response.word)
+          setTargetWord(response.word)
+        } else {
+          alert("Failed to join room")
+        }
+      })
+    }
+
+    socket.on("playerJoined", (response) => {
+      // Update players list
+      console.log("Players updated:", response.players)
+      console.log("is it an array?", Array.isArray(response.players));
+      setPlayers(response.players)
+    })
+
     const newGrid = Array(6)
       .fill()
       .map(() =>
@@ -55,11 +61,9 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
             state: "empty", // empty, filled, correct, present, absent
           })),
       )
-    console.log(multiplayerAction);
-    if (multiplayerAction === "create")
-        createRoom();
-    else
-        joinRoom();
+    console.log(multiplayerAction)
+    if (multiplayerAction === "create") createRoom()
+    else joinRoom()
     setGrid(newGrid)
     setCurrentRow(0)
     setCurrentCol(0)
@@ -67,35 +71,11 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
   }, [wordLength])
 
   useEffect(() => {
-    const fetchWord = async () => {
-      if (!gameStarted || multiplayerAction === "join") return
-
-      try {
-        if (hasFetched.current)
-            return ;
-        hasFetched.current = true;
-
-        const res = await fetch(`${BASE_URL}/word/getWord/${wordLength}`) 
-        const data = await res.json()
-        //console.log(res.text());
-        console.log(data)
-        setTargetWord(data.word)
-      } catch (error) {
-        console.error("Failed to fetch word:", error)
-      }
-    }
-
-    // fetchWord()
-  }, [gameStarted, wordLength]) 
-
-  
-  useEffect(() => {
     if (gameStarted && gridRef.current) {
       gridRef.current.focus()
     }
   }, [gameStarted])
 
-  
   const handleKeyPress = (event) => {
     if (!gameStarted || gameOver) return
     const key = event.key.toLowerCase()
@@ -113,7 +93,6 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
     setInvalidWordMessage(message)
     setShakeRow(currentRow)
 
-    
     setTimeout(() => {
       setInvalidWordMessage("")
       setShakeRow(-1)
@@ -152,11 +131,10 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
     if (currentCol === wordLength && targetWord.length === wordLength) {
       const guess = grid[currentRow].map((c) => c.letter).join("")
       if (guess === targetWord) {
-        
         const newGrid = [...grid]
         newGrid[currentRow].forEach((cell) => (cell.state = "correct"))
         setGrid(newGrid)
-        setGameOver(true) 
+        setGameOver(true)
         return
       }
       try {
@@ -165,7 +143,7 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
 
         if (!data.valid) {
           showInvalidWordMessage("Not in word list")
-          return 
+          return
         }
       } catch (err) {
         console.error("Error validating word:", err)
@@ -186,7 +164,6 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
         }
       })
 
-      
       usedRow.forEach((cell, i) => {
         if (cell.state === "correct") return
 
@@ -205,7 +182,7 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
       })
 
       setGrid(newGrid)
-      
+
       setTimeout(() => {
         setLetterStates(newLetterStates)
         setCurrentRow(currentRow + 1)
@@ -247,6 +224,29 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
 
   return (
     <div ref={gridRef} className="wordle-grid-container" tabIndex={0} onKeyDown={handleKeyPress}>
+      {/* Players Lobby Display */}
+      {players.length > 0 && (
+        <div className="players-lobby">
+          <h3 className="lobby-title">Players in Lobby ({players.length})</h3>
+          <div className="players-list">
+            {players.map((player) => (
+              <div
+                key={player.id}
+                className={`player-item ${player.name === playerName ? "current-player" : ""}`}
+              >
+                <div className="player-avatar">
+                  {player.name ? player.name.charAt(0).toUpperCase() : "?"}
+                </div>
+                <span className="player-name">
+                  {player.name || "Anonymous"}
+                  {player.name === playerName && " (You)"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ✅ Game over message shown on top */}
       {gameOver && <div className="game-over-message">🎉 You guessed the word correctly!</div>}
 
