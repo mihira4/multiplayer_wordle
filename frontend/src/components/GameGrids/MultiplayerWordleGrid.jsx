@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import "./WordleGrid.css"
-import { BASE_URL } from "../../helper"
+import "./MultiplayerWordleGrid.css"
+import { BASE_URL } from "../../../helper"
+import { getSocket } from "../../store/socket"
 
-const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
+const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName, multiplayerAction, roomCode}) => {
   const [grid, setGrid] = useState([])
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
@@ -14,11 +15,36 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   const [invalidWordMessage, setInvalidWordMessage] = useState("")
   const [shakeRow, setShakeRow] = useState(-1)
   const hasFetched = useRef(false);
+  const socket = getSocket();
 
   const gridRef = useRef(null)
 
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
+    const createRoom = () => {
+        socket.emit("createRoom", { playerName, wordLength, roomCode }, (response) => {
+          if (response.success) {
+            setTargetWord(response.word);
+          } else {
+            alert("Failed to create room");
+          }
+        });
+      };
+
+    const joinRoom = () => {
+        socket.emit("joinRoom", {playerName, roomCode }, (response) => {
+            console.log("heres the response ---> ", response);
+            if (response.success) {
+                console.log("here's the response.word ---->", response.word);
+                setTargetWord(response.word);
+                //update playerlist here
+            } else {
+                alert("Failed to join room");
+            }
+        })
+    }
+
+    
     const newGrid = Array(6)
       .fill()
       .map(() =>
@@ -29,6 +55,11 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
             state: "empty", // empty, filled, correct, present, absent
           })),
       )
+    console.log(multiplayerAction);
+    if (multiplayerAction === "create")
+        createRoom();
+    else
+        joinRoom();
     setGrid(newGrid)
     setCurrentRow(0)
     setCurrentCol(0)
@@ -37,14 +68,14 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
 
   useEffect(() => {
     const fetchWord = async () => {
-      if (!gameStarted) return
+      if (!gameStarted || multiplayerAction === "join") return
 
       try {
         if (hasFetched.current)
             return ;
         hasFetched.current = true;
 
-        const res = await fetch(`${BASE_URL}/word/getWord/${wordLength}`) // 👈 use backticks + inject variable
+        const res = await fetch(`${BASE_URL}/word/getWord/${wordLength}`) 
         const data = await res.json()
         //console.log(res.text());
         console.log(data)
@@ -54,17 +85,17 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
       }
     }
 
-    fetchWord()
-  }, [gameStarted, wordLength]) // 👈 also add wordLength as a dependency
+    // fetchWord()
+  }, [gameStarted, wordLength]) 
 
-  // Auto-focus the grid when game starts
+  
   useEffect(() => {
     if (gameStarted && gridRef.current) {
       gridRef.current.focus()
     }
   }, [gameStarted])
 
-  // Handle keyboard input
+  
   const handleKeyPress = (event) => {
     if (!gameStarted || gameOver) return
     const key = event.key.toLowerCase()
@@ -82,7 +113,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
     setInvalidWordMessage(message)
     setShakeRow(currentRow)
 
-    // Clear the message and shake animation after 2 seconds
+    
     setTimeout(() => {
       setInvalidWordMessage("")
       setShakeRow(-1)
@@ -121,11 +152,11 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
     if (currentCol === wordLength && targetWord.length === wordLength) {
       const guess = grid[currentRow].map((c) => c.letter).join("")
       if (guess === targetWord) {
-        // Mark all as correct
+        
         const newGrid = [...grid]
         newGrid[currentRow].forEach((cell) => (cell.state = "correct"))
         setGrid(newGrid)
-        setGameOver(true) // ✅ Game ends here
+        setGameOver(true) 
         return
       }
       try {
@@ -134,7 +165,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
 
         if (!data.valid) {
           showInvalidWordMessage("Not in word list")
-          return // Don't process further if invalid
+          return 
         }
       } catch (err) {
         console.error("Error validating word:", err)
@@ -155,7 +186,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
         }
       })
 
-      // Mark present or absent
+      
       usedRow.forEach((cell, i) => {
         if (cell.state === "correct") return
 
@@ -174,7 +205,7 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
       })
 
       setGrid(newGrid)
-      // Trigger glide animation for the revealed row
+      
       setTimeout(() => {
         setLetterStates(newLetterStates)
         setCurrentRow(currentRow + 1)
@@ -267,4 +298,4 @@ const WordleGrid = ({ wordLength = 5, gameStarted = false }) => {
   )
 }
 
-export default WordleGrid
+export default MultiplayerWordleGrid

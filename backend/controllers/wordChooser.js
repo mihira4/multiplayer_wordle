@@ -18,25 +18,25 @@ const wordAccToLength=async(length)=>{
     }
 }
 
+// not for api, just a function (for socket)
+export const generateWord = async (wordLength) => {
+    console.log(wordLength);
+    const words = await wordAccToLength(wordLength);
+
+    const randomIndex = Math.floor(Math.random() * words.length);
+    let randomWord = words[randomIndex];
+    console.log(randomWord);
+    // randomWord = randomWord.toUpperCase();
+    return randomWord;
+}
+
 export const getWord = async (req, resp) => {
     try {
         const wordLength = parseInt(req.params.wordLength);
-        //console.log(wordLength);
-        //const file = `${wordLength}letters.txt`;
-        // const words = loadStrings(fileName);
-        const words= await wordAccToLength(wordLength);
-        //console.log(words);
+        const words = await wordAccToLength(wordLength);
         if (!words || words.length === 0) {
       return resp.status(404).json({ error: "No words found for this length" });
     }
-        // fs.readFile(fileName, 'utf8', (err, data) => {
-        //     if (err) {
-        //     console.error('Error reading file:', err);
-        //     return;
-        //     }
-        //     const words = data.split('\n').map(word => word.trim()).filter(Boolean); //converted all words into array
-        //     const size = words.length;
-            
             const randomIndex = Math.floor(Math.random() * words.length);
             let randomWord = words[randomIndex];
             randomWord = randomWord.toUpperCase();

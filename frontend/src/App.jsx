@@ -7,7 +7,8 @@ import Register from './components/Register.jsx'
 import Home from './components/Home.jsx'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import GamePage from './components/GamePage.jsx'
-import WordleGrid from './components/WordleGrid.jsx'
+import WordleGrid from './components/GameGrids/WordleGrid.jsx'
+import MultiplayerWordleGrid from './components/GameGrids/MultiplayerWordleGrid.jsx'
 
 function App() {
     const router = createBrowserRouter([
@@ -26,6 +27,10 @@ function App() {
       {
         path: "/game",
         element: <><WordleGrid /></>
+      },
+      {
+        path: "/multiplayergame/:roomcode/:wordLength/:multiplayerAction/:gameStarted",
+        element: <><MultiplayerWordleGrid /></>
       }
       
     ])
