@@ -4,6 +4,7 @@
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   overflow: hidden;
+  position: relative;
 }
 
 .game-header {
@@ -54,6 +55,44 @@
 
 .new-game-btn:hover {
   background-color: #5a9a54;
+}
+
+/* Copy Notification Styles */
+.copy-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #6aaa64;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideInFade 0.3s ease-out forwards, slideOutFade 0.3s ease-in 1.7s forwards;
+}
+
+@keyframes slideInFade {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutFade {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 
 .game-settings {
@@ -265,6 +304,13 @@
 
   .multiplayer-buttons {
     flex-direction: column;
+  }
+
+  .copy-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    text-align: center;
   }
 }
 
