@@ -29,7 +29,7 @@ export const verifySocketToken = (socket, next) => {
         return next(new Error("Access Denied: No Token Provided!")); 
     
     try {
-        const user = jwt.verify(token, JWT_SECRET);
+        const user = jwt.verify(token, process.env.JWT_SECRET);
         socket.user = user; // Attach user to socket (similar to request.user in Express)
         next(); // Allow connection
     } catch (error) {

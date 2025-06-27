@@ -35,7 +35,7 @@ export const register = async(req, resp) => {
         const saveUser=await newUser.save();
         
         //jwt token
-        const token=jwt.sign({emailid:emailid},key);
+        const token=jwt.sign({emailid:emailid, username:username},key);
         resp.json({success: true,token});
     } catch (error) {
         console.log("error in registering", error);
@@ -57,7 +57,7 @@ export const login = async (req, resp) => {
             return resp.status(200).json({success: false, message:"Invalid credentials. Please check again!"});
         }
 
-        const token=jwt.sign({emailid:emailid},key);
+        const token=jwt.sign({emailid:emailid, username: currentUser.username},key);
         resp.json({success: true,token});
     } catch (error) {
         console.log("error in login", error);

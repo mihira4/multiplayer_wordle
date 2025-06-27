@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { generateWord } from "./controllers/wordChooser.js";
+import { verifySocketToken } from "./middleware/verifyToken.js";
 
 let rooms = {};
 
@@ -12,29 +13,32 @@ export const initializeSocket = (server) => {
           credentials: true,
         },
       });
-
+      
+      io.use(verifySocketToken);
       io.on("connection", (socket) => {
         console.log("A user connected:", socket.id);
 
-        socket.on("createRoom", async ({ playerName, wordLength, roomCode }, callback) => {
-
-            console.log(`Room created with room code ${roomCode} by user ${socket.id}`);
-            const word = await generateWord(wordLength);
+        socket.on("createRoom", async ({wordLength, roomCode }, callback) => {
+          const word = await generateWord(wordLength);
+          const playerName = socket.user.username;
+          console.log(`Room created with room code ${roomCode} by user ${playerName}`);
             rooms[roomCode] = {
               players: [{ id: socket.id, name: playerName }],
               wordLength,
               word
             }
             socket.join(roomCode);
-            socket.data.roomCode = roomCode;
-            socket.data.playerName = playerName;
+            
+            const room = rooms[roomCode];
+            io.to(roomCode).emit("playerJoined", {players: room.players});
 
-            callback({ success: true, roomCode, wordLength, word });
+            callback({ success: true, roomCode, wordLength, word, playerName });
         })
 
-        socket.on("joinRoom", ({playerName, roomCode }, callback) => {
+        socket.on("joinRoom", ({ roomCode }, callback) => {
             const room = rooms[roomCode];
-            console.log(`Room joined with room code ${roomCode} by user ${socket.id}`);
+            const playerName = socket.user.username;
+            console.log(`Room joined with room code ${roomCode} by user ${playerName}`);
 
            const alreadyJoined = room.players.some(player => player.id === socket.id);
             if (!alreadyJoined) {
@@ -44,12 +48,10 @@ export const initializeSocket = (server) => {
             const word = room.word;
 
             socket.join(roomCode);
-            socket.data.roomCode = roomCode;
-            socket.data.playerName = playerName;
 
             io.to(roomCode).emit("playerJoined", {players: room.players});
 
-            callback({ success: true, roomCode, word});
+            callback({ success: true, roomCode, word, playerName});
         })
 
         socket.on("restartGame", async ({roomCode, wordLength}, callback) => {

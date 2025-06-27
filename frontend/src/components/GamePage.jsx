@@ -4,11 +4,9 @@ import { useState, useEffect } from "react"
 import WordleGrid from "./GameGrids/WordleGrid"
 import "./GamePage.css"
 import Header from "./Header"
-import { useNavigate } from "react-router-dom"
 import MultiplayerWordleGrid from "./GameGrids/MultiplayerWordleGrid"
 
 const GamePage = () => {
-  const navigate = useNavigate()
   const [wordLength, setWordLength] = useState(5)
   const [gameStarted, setGameStarted] = useState(false)
   const [showSettings, setShowSettings] = useState(true)
@@ -64,8 +62,8 @@ const GamePage = () => {
   const canStartGame = () => {
     if (gameMode === "single") return true
     if (gameMode === "multiplayer") {
-      if (multiplayerAction === "create") return playerName.trim() !== ""
-      if (multiplayerAction === "join") return playerName.trim() !== "" && roomCode.trim() !== ""
+      if (multiplayerAction === "create") return true
+      if (multiplayerAction === "join") return roomCode.length === 6
     }
     return false
   }
@@ -106,7 +104,7 @@ const GamePage = () => {
 
             {gameMode === "multiplayer" && (
               <>
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label className="form-label">Player Name</label>
                   <input
                     type="text"
@@ -115,8 +113,8 @@ const GamePage = () => {
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     maxLength={20}
-                  />
-                </div>
+                  /> */}
+                {/* </div> */}
 
                 <div className="form-group">
                   <label className="form-label">Multiplayer Options</label>
@@ -213,7 +211,6 @@ const GamePage = () => {
         <MultiplayerWordleGrid
           wordLength={wordLength}
           gameStarted={gameStarted}
-          playerName={playerName}
           multiplayerAction={multiplayerAction}
           roomCode={roomCode}
           onNewGame={handleNewGame}

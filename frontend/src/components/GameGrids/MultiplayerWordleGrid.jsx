@@ -8,7 +8,6 @@ import { getSocket } from "../../store/socket"
 const MultiplayerWordleGrid = ({
   wordLength = 5,
   gameStarted = false,
-  playerName,
   multiplayerAction,
   roomCode,
   onNewGame,
@@ -22,6 +21,7 @@ const MultiplayerWordleGrid = ({
   const [invalidWordMessage, setInvalidWordMessage] = useState("")
   const [shakeRow, setShakeRow] = useState(-1)
   const [players, setPlayers] = useState([]) // New state for players list
+  const [playerName, setPlayerName] = useState("");
   const hasFetched = useRef(false)
   const socket = getSocket()
 
@@ -30,9 +30,10 @@ const MultiplayerWordleGrid = ({
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
     const createRoom = () => {
-      socket.emit("createRoom", { playerName, wordLength, roomCode }, (response) => {
+      socket.emit("createRoom", {wordLength, roomCode }, (response) => {
         if (response.success) {
           setTargetWord(response.word)
+          setPlayerName(response.playerName);
         } else {
           alert("Failed to create room")
         }
@@ -40,11 +41,10 @@ const MultiplayerWordleGrid = ({
     }
 
     const joinRoom = () => {
-      socket.emit("joinRoom", { playerName, roomCode }, (response) => {
-        console.log("heres the response ---> ", response)
+      socket.emit("joinRoom", {roomCode }, (response) => {
         if (response.success) {
-          console.log("here's the response.word ---->", response.word)
-          setTargetWord(response.word)
+          setTargetWord(response.word);
+          setPlayerName(response.playerName);
         } else {
           alert("Failed to join room")
         }
