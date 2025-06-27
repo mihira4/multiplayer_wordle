@@ -40,7 +40,7 @@ export const initializeSocket = (server) => {
             const playerName = socket.user.username;
             console.log(`Room joined with room code ${roomCode} by user ${playerName}`);
 
-           const alreadyJoined = room.players.some(player => player.id === socket.id);
+           const alreadyJoined = room.players.some(player => player.name === playerName);
             if (!alreadyJoined) {
               room.players.push({ id: socket.id, name: playerName });
             }
