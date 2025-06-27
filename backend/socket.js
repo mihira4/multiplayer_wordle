@@ -52,6 +52,16 @@ export const initializeSocket = (server) => {
             callback({ success: true, roomCode, word});
         })
 
+        socket.on("restartGame", async ({roomCode, wordLength}, callback) => {
+          const room = rooms[roomCode];
+          const word = await generateWord(wordLength);
+          room.word = word;
+          
+          io.to(roomCode).emit("restartGame", {success: true, word});
+
+          // callback({success: true, word});
+        })
+
         socket.on("disconnect", () => {
           console.log("❌ A user disconnected:", socket.id);
         });

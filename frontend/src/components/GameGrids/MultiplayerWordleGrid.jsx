@@ -5,7 +5,14 @@ import "./MultiplayerWordleGrid.css"
 import { BASE_URL } from "../../../helper"
 import { getSocket } from "../../store/socket"
 
-const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName, multiplayerAction, roomCode }) => {
+const MultiplayerWordleGrid = ({
+  wordLength = 5,
+  gameStarted = false,
+  playerName,
+  multiplayerAction,
+  roomCode,
+  onNewGame,
+}) => {
   const [grid, setGrid] = useState([])
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
@@ -47,8 +54,36 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
     socket.on("playerJoined", (response) => {
       // Update players list
       console.log("Players updated:", response.players)
-      console.log("is it an array?", Array.isArray(response.players));
+      console.log("is it an array?", Array.isArray(response.players))
       setPlayers(response.players)
+    })
+
+    socket.on("restartGame", (response) => {
+      if (response.success) {
+        setTargetWord(response.word)
+
+        // Reset all game state
+        const newGrid = Array(6)
+          .fill()
+          .map(() =>
+            Array(wordLength)
+              .fill()
+              .map(() => ({
+                letter: "",
+                state: "empty",
+              })),
+          )
+
+        setGrid(newGrid)
+        setCurrentRow(0)
+        setCurrentCol(0)
+        setLetterStates({})
+        setGameOver(false)
+        setInvalidWordMessage("")
+        setShakeRow(-1)
+      } else {
+        alert("Failed to restart game")
+      }
     })
 
     const newGrid = Array(6)
@@ -191,6 +226,10 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
     }
   }
 
+  const handleRestartGame = () => {
+    socket.emit("restartGame", { roomCode, wordLength })
+  }
+
   const getCellClass = (cell, rowIndex, colIndex) => {
     let className = "grid-cell"
 
@@ -230,13 +269,8 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
           <h3 className="lobby-title">Players in Lobby ({players.length})</h3>
           <div className="players-list">
             {players.map((player) => (
-              <div
-                key={player.id}
-                className={`player-item ${player.name === playerName ? "current-player" : ""}`}
-              >
-                <div className="player-avatar">
-                  {player.name ? player.name.charAt(0).toUpperCase() : "?"}
-                </div>
+              <div key={player.id} className={`player-item ${player.name === playerName ? "current-player" : ""}`}>
+                <div className="player-avatar">{player.name ? player.name.charAt(0).toUpperCase() : "?"}</div>
                 <span className="player-name">
                   {player.name || "Anonymous"}
                   {player.name === playerName && " (You)"}
@@ -244,6 +278,23 @@ const MultiplayerWordleGrid = ({ wordLength = 5, gameStarted = false, playerName
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Unified Game Controls - Fixed position in top-right corner */}
+      {gameStarted && (
+        <div className="game-controls-corner">
+          {multiplayerAction === "create" && (
+            <button className="control-btn restart-btn" onClick={handleRestartGame}>
+              {/* <span className="btn-icon">🔄</span> */}
+              <span className="btn-text">Restart</span>
+            </button>
+          )}
+
+          <button className="control-btn new-game-btn" onClick={onNewGame}>
+            {/* <span className="btn-icon">🎮</span> */}
+            <span className="btn-text">New Game</span>
+          </button>
         </div>
       )}
 

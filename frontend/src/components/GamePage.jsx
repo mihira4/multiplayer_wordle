@@ -73,13 +73,7 @@ const GamePage = () => {
   return (
     <div className="game-page">
       <Header />
-      <div className="game-header">
-        {gameStarted && (
-          <button className="new-game-btn" onClick={handleNewGame}>
-            New Game
-          </button>
-        )}
-      </div>
+      <div className="game-header">{/* Remove the new game button from here */}</div>
 
       {/* Copy Notification */}
       {showCopyNotification && (
@@ -222,6 +216,7 @@ const GamePage = () => {
           playerName={playerName}
           multiplayerAction={multiplayerAction}
           roomCode={roomCode}
+          onNewGame={handleNewGame}
         />
       )}
     </div>
