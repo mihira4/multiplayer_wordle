@@ -49,8 +49,10 @@ export const initializeSocket = (server) => {
 
             socket.join(roomCode);
 
-            io.to(roomCode).emit("playerJoined", {players: room.players});
+            const host=room.players[0].name;
 
+            io.to(roomCode).emit("playerJoined", {players: room.players,message:`${playerName} joined!`});
+            socket.emit("joinedRoom",{message:`you have joined ${host}'s room, welcome!`});
             callback({ success: true, roomCode, word, playerName});
         })
 
@@ -62,6 +64,11 @@ export const initializeSocket = (server) => {
           io.to(roomCode).emit("restartGame", {success: true, word});
 
           // callback({success: true, word});
+        })
+
+        socket.on("guessedWord",({roomCode})=>{
+          const playerName=socket.user.username;
+          socket.to(roomCode).emit("guessedNotif",{message:`${playerName} has guessed the word correctly!`});
         })
 
         socket.on("disconnect", () => {

@@ -22,6 +22,8 @@ const MultiplayerWordleGrid = ({
   const [shakeRow, setShakeRow] = useState(-1)
   const [players, setPlayers] = useState([]) // New state for players list
   const [playerName, setPlayerName] = useState("");
+  const [notificationMessage, setNotificationMessage] = useState("");
+
   const hasFetched = useRef(false)
   const socket = getSocket()
 
@@ -53,10 +55,30 @@ const MultiplayerWordleGrid = ({
 
     socket.on("playerJoined", (response) => {
       // Update players list
+      setNotificationMessage(response.message);
+         setTimeout(() => {
+         setNotificationMessage("");
+          }, 5000);
       console.log("Players updated:", response.players)
       console.log("is it an array?", Array.isArray(response.players))
       setPlayers(response.players)
     })
+
+    socket.on("joinedRoom",(data)=>{
+      console.log("joined room notif now");
+      setNotificationMessage(data.message);
+         setTimeout(() => {
+         setNotificationMessage("");
+          }, 5000);
+        })
+
+    socket.on("guessedNotif",(data)=>{
+         setNotificationMessage(data.message);
+         setTimeout(() => {
+         setNotificationMessage("");
+          }, 5000);
+        })
+
 
     socket.on("restartGame", (response) => {
       if (response.success) {
@@ -170,6 +192,10 @@ const MultiplayerWordleGrid = ({
         newGrid[currentRow].forEach((cell) => (cell.state = "correct"))
         setGrid(newGrid)
         setGameOver(true)
+
+        socket.emit("guessedWord",{roomCode});
+        
+
         return
       }
       try {
@@ -303,6 +329,13 @@ const MultiplayerWordleGrid = ({
 
       {/* Invalid word message */}
       {invalidWordMessage && <div className="invalid-word-message">{invalidWordMessage}</div>}
+
+      {notificationMessage && (
+  <div className="notification-banner">
+    {notificationMessage}
+  </div>
+)}
+
 
       <div className="wordle-grid" style={{ "--word-length": wordLength }}>
         {grid.map((row, rowIndex) => (
