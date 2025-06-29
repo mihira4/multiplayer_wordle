@@ -23,11 +23,20 @@ const MultiplayerWordleGrid = ({
   const [players, setPlayers] = useState([]) // New state for players list
   const [playerName, setPlayerName] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
+  const [lobbyChat, setLobbyChat] = useState([]);
+  const [chatInput, setChatInput] = useState("");
 
   const hasFetched = useRef(false)
   const socket = getSocket()
 
   const gridRef = useRef(null)
+
+  const sendLobbyMessage = () => {
+  if (chatInput.trim()) {
+    socket.emit("newMessage", {roomCode, text: chatInput.trim() });
+    setChatInput("");
+  }
+};
 
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
@@ -41,6 +50,10 @@ const MultiplayerWordleGrid = ({
         }
       })
     }
+
+    const handleMessage = (msg) => {
+    setLobbyChat((prev) => [...prev, msg]);
+  };
 
     const joinRoom = () => {
       socket.emit("joinRoom", {roomCode }, (response) => {
@@ -79,6 +92,11 @@ const MultiplayerWordleGrid = ({
           }, 5000);
         })
 
+    socket.emit("messageHistory",{roomCode},(response)=>{
+      setLobbyChat(response);
+    })
+
+    socket.on("messages", handleMessage);
 
     socket.on("restartGame", (response) => {
       if (response.success) {
@@ -125,6 +143,11 @@ const MultiplayerWordleGrid = ({
     setCurrentRow(0)
     setCurrentCol(0)
     setLetterStates({})
+    
+    return () => {
+    socket.off("messages", handleMessage); // Clean up on unmount
+  };
+
   }, [wordLength])
 
   useEffect(() => {
@@ -288,98 +311,115 @@ const MultiplayerWordleGrid = ({
   }
 
   return (
-    <div ref={gridRef} className="wordle-grid-container" tabIndex={0} onKeyDown={handleKeyPress}>
-      {/* Players Lobby Display */}
-      {players.length > 0 && (
-        <div className="players-lobby">
-          <h3 className="lobby-title">Players in Lobby ({players.length})</h3>
-          <div className="players-list">
-            {players.map((player) => (
-              <div key={player.id} className={`player-item ${player.name === playerName ? "current-player" : ""}`}>
-                <div className="player-avatar">{player.name ? player.name.charAt(0).toUpperCase() : "?"}</div>
-                <span className="player-name">
-                  {player.name || "Anonymous"}
-                  {player.name === playerName && " (You)"}
-                </span>
-              </div>
-            ))}
-          </div>
+  <div ref={gridRef} className="wordle-grid-container" tabIndex={0} onKeyDown={handleKeyPress}>
+    {/* Players Lobby Display */}
+    {players.length > 0 && (
+      <div className="players-lobby">
+        <h3 className="lobby-title">Players in Lobby ({players.length})</h3>
+        <div className="players-list">
+          {players.map((player) => (
+            <div key={player.id} className={`player-item ${player.name === playerName ? "current-player" : ""}`}>
+              <div className="player-avatar">{player.name ? player.name.charAt(0).toUpperCase() : "?"}</div>
+              <span className="player-name">
+                {player.name || "Anonymous"}
+                {player.name === playerName && " (You)"}
+              </span>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
+    )}
 
-      {/* Unified Game Controls - Fixed position in top-right corner */}
-      {gameStarted && (
-        <div className="game-controls-corner">
-          {multiplayerAction === "create" && (
-            <button className="control-btn restart-btn" onClick={handleRestartGame}>
-              {/* <span className="btn-icon">🔄</span> */}
-              <span className="btn-text">Restart</span>
-            </button>
-          )}
-
-          <button className="control-btn new-game-btn" onClick={onNewGame}>
-            {/* <span className="btn-icon">🎮</span> */}
-            <span className="btn-text">New Game</span>
+    {/* Unified Game Controls */}
+    {gameStarted && (
+      <div className="game-controls-corner">
+        {multiplayerAction === "create" && (
+          <button className="control-btn restart-btn" onClick={handleRestartGame}>
+            <span className="btn-text">Restart</span>
           </button>
+        )}
+        <button className="control-btn new-game-btn" onClick={onNewGame}>
+          <span className="btn-text">New Game</span>
+        </button>
+      </div>
+    )}
+
+    {/* Game Status Messages */}
+    {gameOver && <div className="game-over-message">🎉 You guessed the word correctly!</div>}
+    {invalidWordMessage && <div className="invalid-word-message">{invalidWordMessage}</div>}
+    {notificationMessage && (
+      <div className="notification-banner">{notificationMessage}</div>
+    )}
+
+    {/* Word Grid */}
+    <div className="wordle-grid" style={{ "--word-length": wordLength }}>
+      {grid.map((row, rowIndex) => (
+        <div key={rowIndex} className={getRowClass(rowIndex)}>
+          {row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={getCellClass(cell, rowIndex, colIndex)}
+              style={{
+                animationDelay: cell.state !== "empty" && rowIndex <= currentRow ? `${colIndex * 0.2}s` : "0s",
+              }}
+            >
+              {cell.letter}
+            </div>
+          ))}
         </div>
-      )}
+      ))}
+    </div>
 
-      {/* ✅ Game over message shown on top */}
-      {gameOver && <div className="game-over-message">🎉 You guessed the word correctly!</div>}
+    {/* Game Instructions + Keyboard */}
+    {gameStarted && (
+      <>
+        <div className="game-instructions">
+          <p>Type letters and press Enter to submit your guess</p>
+          <p>Use Backspace to delete letters</p>
+        </div>
 
-      {/* Invalid word message */}
-      {invalidWordMessage && <div className="invalid-word-message">{invalidWordMessage}</div>}
+        <div className="keyboard">
+          {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => (
+            <div
+              key={letter}
+              className={`key ${letterStates[letter] ? `key-${letterStates[letter]}` : "key-unused"}`}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
 
-      {notificationMessage && (
-  <div className="notification-banner">
-    {notificationMessage}
-  </div>
-)}
+        {process.env.NODE_ENV === "development" && targetWord && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>🔍 Target Word: {targetWord}</p>
+        )}
+      </>
+    )}
 
-
-      <div className="wordle-grid" style={{ "--word-length": wordLength }}>
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className={getRowClass(rowIndex)}>
-            {row.map((cell, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={getCellClass(cell, rowIndex, colIndex)}
-                style={{
-                  animationDelay: cell.state !== "empty" && rowIndex <= currentRow ? `${colIndex * 0.2}s` : "0s",
-                }}
-              >
-                {cell.letter}
-              </div>
-            ))}
+    {/* ✅ Lobby Chat Section */}
+    <div className="lobby-chat-container">
+      <h3 className="lobby-title">💬 Lobby Chat</h3>
+      <div className="lobby-chat-box">
+        {lobbyChat.map((msg, index) => (
+          <div
+            key={index}
+            className={`lobby-chat-message ${msg.sender === playerName ? "own-message" : "other-message"}`}
+          >
+            <strong>{msg.sender}:</strong> {msg.text}
           </div>
         ))}
       </div>
-
-      {gameStarted && (
-        <>
-          <div className="game-instructions">
-            <p>Type letters and press Enter to submit your guess</p>
-            <p>Use Backspace to delete letters</p>
-          </div>
-
-          <div className="keyboard">
-            {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => (
-              <div
-                key={letter}
-                className={`key ${letterStates[letter] ? `key-${letterStates[letter]}` : "key-unused"}`}
-              >
-                {letter}
-              </div>
-            ))}
-          </div>
-
-          {process.env.NODE_ENV === "development" && targetWord && (
-            <p style={{ textAlign: "center", marginTop: "1rem" }}>🔍 Target Word: {targetWord}</p>
-          )}
-        </>
-      )}
+      <div className="lobby-chat-input">
+        <input
+          type="text"
+          placeholder="Type a message..."
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendLobbyMessage()}
+        />
+        <button onClick={sendLobbyMessage}>Send</button>
+      </div>
     </div>
-  )
+  </div>
+)
 }
-
 export default MultiplayerWordleGrid

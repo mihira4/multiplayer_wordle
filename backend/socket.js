@@ -3,6 +3,7 @@ import { generateWord } from "./controllers/wordChooser.js";
 import { verifySocketToken } from "./middleware/verifyToken.js";
 
 let rooms = {};
+let roomMessages={};
 
 export const initializeSocket = (server) => {
     const io = new Server(server, {
@@ -71,6 +72,25 @@ export const initializeSocket = (server) => {
           socket.to(roomCode).emit("guessedNotif",{message:`${playerName} has guessed the word correctly!`});
         })
 
+        socket.on("newMessage",({roomCode,text})=>{
+          console.log("roomCode?", roomCode);
+          console.log("data.text?",text);
+          const sender=socket.user.username;
+          const message={
+            sender: sender,
+            text: text,
+            time:new Date().toISOString(),
+          }
+          if(!roomMessages[roomCode])
+            roomMessages[roomCode]=[];//initialise kar do
+          roomMessages[roomCode].push(message);
+          io.to(roomCode).emit("messages",message);
+        })
+
+        socket.on("messageHistory",({roomCode},callback)=>{
+          callback(roomMessages[roomCode]||[]);
+        })
+        
         socket.on("disconnect", () => {
           console.log("❌ A user disconnected:", socket.id);
         });
