@@ -62,7 +62,8 @@ export const initializeSocket = (server) => {
           const room = rooms[roomCode];
           const word = await generateWord(wordLength);
           room.word = word;
-          
+          roomLeaderBoard[roomCode] = [];
+
           io.to(roomCode).emit("restartGame", {success: true, word});
 
           // callback({success: true, word});
