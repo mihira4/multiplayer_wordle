@@ -4,6 +4,7 @@ import { verifySocketToken } from "./middleware/verifyToken.js";
 
 let rooms = {};
 let roomMessages={};
+let roomLeaderBoard={};
 
 export const initializeSocket = (server) => {
     const io = new Server(server, {
@@ -67,10 +68,29 @@ export const initializeSocket = (server) => {
           // callback({success: true, word});
         })
 
-        socket.on("guessedWord",({roomCode})=>{
+        socket.on("guessedWord",({roomCode,time})=>{
           const playerName=socket.user.username;
+          if(!roomLeaderBoard[roomCode])
+            roomLeaderBoard[roomCode]=[];
+          
+          const thisLeaderBoard=roomLeaderBoard[roomCode];
+
+          const exists=thisLeaderBoard.find((entry)=>entry.name===playerName);
+          
+          if(!exists)
+            thisLeaderBoard.push({
+          name:playerName,
+          time:time,
+          position:thisLeaderBoard.length+1
+        })
+          io.to(roomCode).emit("getRoomLeaderboard", roomLeaderBoard[roomCode]);
           socket.to(roomCode).emit("guessedNotif",{message:`${playerName} has guessed the word correctly!`});
         })
+
+          socket.on("getRoomLeaderboard", ({ roomCode }, callback) => {
+    const leaderboard = roomLeaderBoard[roomCode] || [];
+    callback(leaderboard);
+  });
 
         socket.on("newMessage",({roomCode,text})=>{
           console.log("roomCode?", roomCode);

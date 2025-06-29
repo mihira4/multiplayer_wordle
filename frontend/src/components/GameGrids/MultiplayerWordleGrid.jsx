@@ -25,6 +25,8 @@ const MultiplayerWordleGrid = ({
   const [notificationMessage, setNotificationMessage] = useState("");
   const [lobbyChat, setLobbyChat] = useState([]);
   const [chatInput, setChatInput] = useState("");
+  const [startTime, setStartTime] = useState(null);
+  const [roomLeaderboard, setRoomLeaderboard] = useState([]);
 
   const hasFetched = useRef(false)
   const socket = getSocket()
@@ -37,6 +39,18 @@ const MultiplayerWordleGrid = ({
     setChatInput("");
   }
 };
+
+const formatTime = (ms) => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+
+useEffect(() => {
+  if (gameStarted) setStartTime(Date.now());
+}, [gameStarted]);
 
   // Initialize grid when component mounts or wordLength changes
   useEffect(() => {
@@ -98,6 +112,10 @@ const MultiplayerWordleGrid = ({
 
     socket.on("messages", handleMessage);
 
+    socket.on("getRoomLeaderboard", (leaderboard) => {
+    setRoomLeaderboard(leaderboard);
+  });
+
     socket.on("restartGame", (response) => {
       if (response.success) {
         setTargetWord(response.word)
@@ -121,6 +139,7 @@ const MultiplayerWordleGrid = ({
         setGameOver(false)
         setInvalidWordMessage("")
         setShakeRow(-1)
+        setRoomLeaderboard([]);
       } else {
         alert("Failed to restart game")
       }
@@ -157,7 +176,14 @@ const MultiplayerWordleGrid = ({
   }, [gameStarted])
 
   const handleKeyPress = (event) => {
-    if (!gameStarted || gameOver) return
+    if (
+    !gameStarted ||
+    gameOver ||
+    document.activeElement.tagName === "INPUT" ||
+    document.activeElement.tagName === "TEXTAREA"
+  ) {
+    return;
+  }
     const key = event.key.toLowerCase()
 
     if (key === "enter") {
@@ -211,12 +237,13 @@ const MultiplayerWordleGrid = ({
     if (currentCol === wordLength && targetWord.length === wordLength) {
       const guess = grid[currentRow].map((c) => c.letter).join("")
       if (guess === targetWord) {
+        const time = formatTime(Date.now() - startTime);
         const newGrid = [...grid]
         newGrid[currentRow].forEach((cell) => (cell.state = "correct"))
         setGrid(newGrid)
         setGameOver(true)
 
-        socket.emit("guessedWord",{roomCode});
+        socket.emit("guessedWord",{roomCode,time});
         
 
         return
@@ -419,7 +446,32 @@ const MultiplayerWordleGrid = ({
         <button onClick={sendLobbyMessage}>Send</button>
       </div>
     </div>
+
+    <div className="leaderboard-container">
+  <h3>🏅 Room Leaderboard</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Player</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {roomLeaderboard.map((entry, index) => (
+        <tr key={index}>
+          <td>{entry.position}</td>
+          <td>{entry.name}</td>
+          <td>{entry.time}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
   </div>
+
+
 )
 }
 export default MultiplayerWordleGrid
